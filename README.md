@@ -8,6 +8,8 @@
     - 3 - Operadores Aritméticos
     - 4 - Estruturas Condicionais
     - 5 - Estruturas de repetição
+	- 6 - Conjuntos
+	- 7 - Funções e Escopo
 
 # Basic
 
@@ -399,4 +401,263 @@ func main(){
 
 
 Perceba que a estrutura é bem parecida.
+
+
+## 6 - Conjuntos
+
+### Vetores
+
+Para inicializar um array a estrutura básica é `var amigos [5]string`, podemos ver que a definição é feita na seguinte ordem:
+1. Nome
+2. Quantidade
+3. Tipo
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main(){
+    var amigos [5]string
+    fmt.Println(amigos)
+
+    for i := 0; i < len(amigos); i++ {
+        fmt.Print("Digine o nome de um dos seus amigos: ")
+        fmt.Scanf("%s", &amigos[i])
+    }
+    fmt.Println(amigos)
+
+    // Um tipo de "Foreach" > aqui é passado o indice e o elemento.
+    for _, amigo := range amigos {
+        fmt.Printf("- %s \n", amigo)
+    }
+
+    arrayInicializado := [3]int {1, 2, 3}
+    fmt.Println(arrayInicializado)
+
+    var matriz [3][3]int
+    for i := 0; i < 3; i++ {
+        for j := 0; j < 3; j++ {
+            fmt.Println("Digite um número: ")
+            fmt.Scanf("%d", &matriz[i][j])
+        }
+    }
+    fmt.Println(matriz)
+}
+```
+
+No entanto em Go não é tão comum a utilização de vetores pois eles acabam sendo meio inflexíveis e limitados. Por outro lado o Go oferece algo chamado de Slices que veremos a seguir.
+
+### Slices
+
+Para inicializar um slice utilizamos uma função **built-in** chamada `make()` conforme exemplo:
+
+```go
+amigos := make([]string, 3)
+```
+
+Aqui podemos ver que passamos o tipo de dado que será armazenado no slice e o tamanho inicial. Isso não significa que o tamanho dele será limitado a 3.
+
+Abaixo temos um exemplo de como podemos aumentar o tamanho do nosso slice, digamos que definimos inicialmente 3 posições para o slice e apareça a necessidade de adicionar mais, para isso basta utilizar outra função **built-in** chamada `append()` para adicionar um novo elemento.
+
+A função `append()` recebe os seguintes parâmetros **nome_slice, item_a_ser_adicionado**  por exemplo `amigos = append(amigos, nome)` além disso é possível passar mais de um item para adicionar `amigos = append(amigos, nome, "Jose", "Maria", "Joao")` dessa forma estaria adicionar estes outros elementos, abaixo um exemplo completo:
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main(){
+    // Passamos o [] e o que iremos armazenar e seu tamanho inicial
+    amigos := make([]string, 3)
+    nome := ""
+    i := 0
+
+    for nome != "q" {
+        fmt.Print("Digite o nome de um amigo ou 'q' para parar: ")
+        fmt.Scanf("%d", &nome)
+        if nome != "q" {
+            if i < 3 {
+                amigos[i] = nome
+            } else {
+                amigos = append(amigos, nome)
+            }
+            i++
+        }
+    }
+    fmt.Println(amigos)
+    fmt.Printf("O tamanho atual do slice é de: ", len(amigos))
+
+    outroSlice := amigos[1:3] // Inicializando um novo slice apenas com os itens 1 e 2 do slice amigos
+    fmt.Println(outroSlice)
+}
+```
+
+### Dicionários / Mapa
+
+Para criar um dicionário ou um mapa utilizamos a função **built-in** `make(map[])` e definimos o modelo de chave e valor para eles ficando na seguinte estrutura `mapaCursos := make(map[string]int)` sendo que o valor dentro de `[]` é relacionado a chave, e o `[]int` está relacionado ao valor do conteúdo.
+
+```go
+package main
+
+import (
+    "bufio"
+    "fmt"
+    "os"
+)
+
+func main(){
+    mapaCursos := make(map[string]int)
+    scanner := bufio.NewScanner(os.Stdin) // Vai ler os dados que vem do console
+    curso := ""
+
+    for curso != "q" {
+        var cargaHoraria int
+        fmt.Print("Digite um curso ou 'q' para sair: ")
+        scanner.Scan()
+        curso = scanner.Text() // Retorna toda informação do scan
+        if curso != "q" {
+            fmt.Print("Digite a carga horario do curso: ")
+            fmt.Scanf("%d", &cargaHoraria)
+
+            // Adicionar infos no mapa
+            mapaCursos[curso] = cargaHoraria
+        }
+    }
+    fmt.Println("Cursos registrados: ")
+
+    for cursoNome, carga := range mapaCursos {
+        fmt.Println("Nome: ", cursoNome, " Carga: ", carga)
+    }
+
+    // REMOVENDO ITENS
+    curso = ""
+    for curso != "q" {
+        fmt.Print("Digite o nome do curso a ser excluido ou q para cancelar: ")
+        curso = scanner.Text()
+        if curso != "q" {
+            // Neste get ele retorna o valor do elemento e um booleano dizendo se a chave existe ou não:
+            carga, cursoExiste := mapaCursos[curso]
+            if cursoExiste {
+                delete(mapaCursos, curso)
+                fmt.Printf("O curso %s com %dh foi removido", curso, carga)
+            } else {
+                fmt.Printf("O curso %s não existe", curso)
+            }
+        }
+    }
+  
+    fmt.Println("Cursos registrados: ")
+    for cursoNome, carga := range mapaCursos {
+        fmt.Println("Nome: ", cursoNome, " Carga: ", carga)
+    }
+}
+```
+
+
+### Listas Duplamente ligadas
+
+Com o método container/list podemos adicionar os valores por último ou por primeiro através dos métodos `Pushback()` e `PushFront()`.
+Dentro deste modelo ao interar pela lista podemos ver que o elemento (e) conhece o seu anterior e proximo elemento, isso se chama de lista duplamente ligada. 
+
+
+```go
+package main
+
+import (
+    "fmt"
+    "container/list"
+)
+
+func main(){
+    numeros := list.New() // Inicializando uma lista
+    el := numeros.PushBack(1) // Inserir um elemento na parte de trás da lista
+
+    numeros.PushFront(0)
+    numeros.PushBack(2)
+
+    for e := numeros.Front(); e != nil; e = e.Next() {
+        fmt.Println(e.Value)
+    }
+
+    fmt.Println("---------")
+
+    numeros.Remove(el)
+
+    for e := numeros.Front(); e != nil; e = e.Next() {
+        fmt.Println(e.Value)
+    }
+}
+```
+
+## 7 - Funções e Escopo
+
+Para criarmos um função ou método em Go devemos sempre iniciar com a keyword **func** logo a estrutura padrão será:
+
+```go
+func somar(n1 int, n2 int){
+    fmt.Printf("%d + %d = %d", n1, n2, n1 + n2)
+}
+```
+
+Agora vamos criar uma calculadora para exemplificar:
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main(){
+
+    var numero1, numero2 int
+    var operacao string
+    fmt.Print("Digite o primeiro numéro: ")
+    fmt.Scanf("%d", &numero1)
+    fmt.Print("Digite a operação (+, -, *, /, $): ")
+    fmt.Scanf("%d", &operacao)
+    fmt.Print("Digite o segundo numéro: ")
+    fmt.Scanf("%d", &numero2)
+
+    if operacao == "+" {
+        somar(numero1, numero2)
+    } else if operacao == "-" {
+        resultado := subtrair(numero1, numero2)
+        fmt.Printf("%d + %d = %d", numero1, numero2, resultado)
+    } else if operacao == "*" {
+        resultado := multiplicar(numero1, numero2)
+        fmt.Printf("%d x %d = %d", numero1, numero2, resultado)
+    } else if operacao == "/" {
+        resultado, resto := dividir(numero1, numero2)
+        fmt.Printf("%d / %d = %d", numero1, numero2, resultado)
+        fmt.Printf("%d %% %d = %d", numero1, numero2, resto)
+    }
+}
+
+func somar(n1 int, n2 int) {
+    fmt.Printf("%d + %d = %d", n1, n2, n1 + n2)
+}
+
+func subtrair(n1 int, n2 int) int {
+    return n1 - n2
+}
+
+// Aqui já podemos definir a variavel que será retornada
+func multiplicar(n1 int, n2 int) (resultado int) {
+    resultado = n1 * n2
+    return
+}
+
+// Retornando multiplos valores
+func dividir(n1 int, n2 int)(int, int){
+    quociente := n1 / n2
+    resto := n1 % n2
+    return quociente, resto
+}
+```
 
