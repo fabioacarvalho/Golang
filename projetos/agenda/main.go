@@ -89,7 +89,7 @@ func listarContatos(gerenciador *GerenciadorContatos) {
 	if err != nil {
 		fmt.Printf("Não foi pósssível carregar os contatos: %s \n", err)
 	} else {
-		fmt.Println("Lista de contatos: \n")
+		fmt.Println("Lista de contatos: ")
 		for _, contato := range contatos {
 			fmt.Printf("  - %s, %s: %s", contato.nome, contato.formaContato, contato.valorContato)
 		}
