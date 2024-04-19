@@ -10,6 +10,9 @@
     - 5 - Estruturas de repetição
 	- 6 - Conjuntos
 	- 7 - Funções e Escopo
+	- 8 - Closures
+	- 9 - Ponteiros
+	- 10 Estruturas (POO)
 
 # Basic
 
@@ -658,6 +661,255 @@ func dividir(n1 int, n2 int)(int, int){
     quociente := n1 / n2
     resto := n1 % n2
     return quociente, resto
+}
+```
+
+
+## 8 - Closures
+
+Dentro do Go os closures são similares as funções lambdas que temos em outras linguagens. Elas vão agir como se fossem delegates, ou seja, podemos criar uma variável que vai conter a chamada para uma função.
+
+Para definir uma closure baste seguir o seguinte modelo:
+
+```go
+var metodoOperacao func(n1 int, n2 int) (int, int)
+```
+
+Desta forma atribuímos uma função que vai receber 2 inteiros e vai retornar 2 inteiros.
+
+Aqui está um exemplo de implementação de uma calculadora:
+
+```go
+package main
+import (
+    "fmt"
+)
+
+func main(){
+    numero1 := 5
+    numero2 := 2
+    operacao := "/"
+
+    var metodoOperacao func(n1 int, n2 int) (int, int)
+    
+    if operacao == "+" {
+        metodoOperacao = func(n1, n2 int) (int, int) {
+            return n1 + n2, 0
+        }
+    } else if operacao == "-" {
+        metodoOperacao = func(n1, n2 int) (int, int) {
+            return n1 - n2, 0
+        }
+    } else if operacao == "/" {
+        metodoOperacao = func(n1, n2 int) (int, int) {
+            return n1 / n2, n1 % n2
+        }
+    }
+
+    resultado1, resultado2 := metodoOperacao(numero1, numero2)
+    fmt.Printf("%d %s %d = %d, %d", numero1, operacao, numero2, resultado1, resultado2)
+}
+```
+
+
+> Perceba que a medida que eu mudo a operação ela vai se enquadrar em um dos itens e realizar a chamada. Assim podemos criar a função dentro do `main()`.
+
+## 9 - Ponteiros
+
+### Ponteiros
+
+Um ponteiro é uma variável que armazena endereços de memória. Cada variável é armazenada em um endereço de memória específico então ela pode ser acessada pelo seu endereço de memória. Um ponteiro armazena o endereço de memória de outra variável, permitindo que o programa acesse ou modifique o conteúdo dessa variável indiretamente, ou seja, sem usar o nome da variável diretamente.
+
+Em Go é muito comum que a gente trabalhe com ponteiros explícitos.
+
+Para declarar ponteiros na Golang, usamos a seguinte sintaxe `var nomePonteiro *tipo`. Então, caso queiramos declarar um ponteiro que aponta para valores do tipo inteiro faremos da seguinte maneira `var ponteiroInteiro *int`.
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	var ptr *int
+	fmt.Println(ptr)
+	fmt.Printf("%T\n", ptr)
+}
+
+```
+
+### Como apontar para uma posição de memória?
+
+Para isso utilizamos o `&` (E comercial) para apontar para uma posição da memória, por exemplo:
+```go
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	var a int = 10
+	fmt.Printf("Endereço de a: %p\n", &a)
+}
+```
+
+### Acessando o valor apontado por ponteiros na Golang
+
+É possível acessarmos o valor apontado por um ponteiro utilizando o operador `*` antes do nome do ponteiro. Por exemplo:
+
+```go
+package main
+
+import (
+	"fmt"
+)
+
+func main() {
+	var a int = 10
+	var ptr *int = &a
+
+	fmt.Printf("Endereço de a: %p\n", &a)
+	fmt.Printf("Valor de a: %d\n", a)
+	fmt.Printf("Endereço de ptr: %p\n", ptr)
+	fmt.Printf("Valor de ptr: %d\n", *ptr)   
+}
+```
+
+**Retorno**
+
+```shell
+Endereço de a: 0xc000122000
+Valor de a: 10
+Endereço de ptr: 0xc000122000
+Valor de ptr: 10
+```
+
+Veja que ao utilizarmos a sintaxe `*ptr` conseguimos obter o valor `10` que é o valor armazenado na posição de memória apontada pelo ponteiro `ptr`. **Essa operação de colocar o operador `*` antes do nome do ponteiro é chamada de “desreferência de ponteiro”**, ou seja, quando fizemos `*ptr` nós desrefrerênciamos o ponteiro `ptr` para acessar o valor que estava armazenado na posição de memória apontada pelo ponteiro `ptr`.
+
+
+### Exemplo de calculo de rendimento
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main(){
+    var saldo2 = new(float64)
+    var saldo float64
+    fmt.Print("Digite seu saldo: ")
+    fmt.Scanf("%f", &saldo)
+    fmt.Print("Digite seu saldo 2: ")
+    fmt.Scanf("%f", saldo2) // Aqui eu não preciso do & pois o saldo2 já é a posição na memória
+
+    calcularRendimento(&saldo)
+    fmt.Printf("Seu saldo com rendimento é %.2f \n", saldo)
+}
+
+func calcularRendimento(saldo *float64) {
+    *saldo += *saldo * 0.03
+}
+```
+
+
+## 10 - Estruturas (POO)
+
+Para definir uma struct utilizamos o seguinte formato `type NomeDaEstrutura struct {}`, com isso temos o seguinte:
+
+```go
+type Carro struct {
+    modelo string
+    marca string
+    velocidade float32
+}
+```
+
+Agora para definirmos nossos método precisamos fazer o seguinte:
+
+```go
+type Carro struct {
+    modelo string
+    marca string
+    velocidade float32
+}
+
+func (carro *Carro) meuMetodo() {
+	// ...
+}
+```
+
+Ou seja, perceba que ali estamos vinculando nosso método com a struct carro passando o ponteiro de Carro.
+
+Para iniciar uma struct o que seria equivalente ao construtor em outros linguagens ficaria da seguinte forma:
+
+```go
+func main(){
+    // Como se fosse o construtor
+    carro := Carro { modelo: "Palio", marca: "Fiat" }
+}
+```
+
+Exemplo:
+
+```go
+package main
+
+import (
+    "fmt"
+    "errors"
+)
+
+type Carro struct {
+    modelo string
+    marca string
+    velocidade float32
+}
+
+func (carro *Carro) acelerar() error {
+    if carro.velocidade < 15 {
+        carro.velocidade += 5
+        return nil
+    } else {
+        return errors.New("o carro já atingiu a velocidade máxima")
+    }
+}
+
+func (carro *Carro) frear() error {
+    if carro.velocidade > 0 {
+        carro.velocidade -= 5
+        return nil
+    } else {
+        return errors.New("o carro já está parado")
+    }
+}
+
+func main(){
+    // Como se fosse o construtor
+    carro := Carro { modelo: "Palio", marca: "Fiat"}
+    fmt.Println("Iniciando o trajeto")
+    opcao := 0
+    
+    for opcao != 3 {
+        fmt.Print("O que deseja fazer \n 1 - Acelerar \n 2 - Frear \n 3 - Sair \n Escolha uma opção: ")
+        fmt.Scanf("%d", &opcao)
+        var err error = nil
+        switch opcao {
+        case 1:
+            err = carro.acelerar()
+        case 2:
+            err = carro.frear()
+        }
+
+        if err != nil {
+            fmt.Printf("Não foi possível executar a ação \n")
+        } else if opcao != 3 {
+            fmt.Printf("O carro está %.2f Km/h \n", carro.velocidade)
+        }
+    }
 }
 ```
 
