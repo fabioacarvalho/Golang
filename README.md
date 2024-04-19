@@ -3,16 +3,19 @@
 ## Summary
 
 - Basic
-    - 1 - Preparação do Ambiente e Conceitos Iniciais
-    - 2 - Variáveis e Tipos de Dados
-    - 3 - Operadores Aritméticos
-    - 4 - Estruturas Condicionais
-    - 5 - Estruturas de repetição
-	- 6 - Conjuntos
-	- 7 - Funções e Escopo
-	- 8 - Closures
-	- 9 - Ponteiros
-	- 10 Estruturas (POO)
+    - 01 - Preparação do Ambiente e Conceitos Iniciais
+    - 02 - Variáveis e Tipos de Dados
+    - 03 - Operadores Aritméticos
+    - 04 - Estruturas Condicionais
+    - 05 - Estruturas de repetição
+	- 06 - Conjuntos
+	- 07 - Funções e Escopo
+	- 08 - Closures
+	- 09 - Ponteiros
+	- 10 - Estruturas
+	- 11 - Interfaces
+	- 12 - Pacotes Personalizados
+	- 13 - Concorrência e Assincronismo
 
 # Basic
 
@@ -816,7 +819,7 @@ func calcularRendimento(saldo *float64) {
 ```
 
 
-## 10 - Estruturas (POO)
+## 10 - Estruturas (Classes)
 
 Para definir uma struct utilizamos o seguinte formato `type NomeDaEstrutura struct {}`, com isso temos o seguinte:
 
@@ -912,4 +915,146 @@ func main(){
     }
 }
 ```
+
+>  Uma observação importante, dentro de alguns pacotes podemos ver que alguns métodos começam com a letra maiúscula e isso não é por acaso, isso é a aplicação de visibilidade. Sendo assim a primeira letra minúscula seria equivalente a itens privados e a primeira letra maiúscula seria equivalente a itens públicos.
+
+
+## 11 - Interfaces
+
+Para criar uma interface no Go é muito simples basta seguir o seguinte padrão:
+
+```go
+type Acelerador interface {
+    acelerar() error
+}
+
+type Freador interface {
+    frear() error
+}
+```
+
+> As interfaces não servem para ser implementadas no struct.
+
+Para isso vamos fazer o seguinte, implementar um método que vai receber a interface:
+
+```go
+func fazerAcelerar(veiculo Acelerador) error {
+    return veiculo.acelerar()
+}
+
+func fazerFrear(veiculo Freador) error {
+    return veiculo.frear()
+}
+```
+
+Agora para executar este método precisamos passar o valor por referencia, ou seja, utilizar o & comercial, conforme exemplo abaixo:
+
+```go
+package main
+
+import (
+    "fmt"
+    "errors"
+)
+
+type Acelerador interface {
+    acelerar() error
+}
+
+type Freador interface {
+    frear() error
+}
+
+type Carro struct {
+    modelo string
+    marca string
+    velocidade float32
+}
+
+func (carro *Carro) acelerar() error {
+    if carro.velocidade < 15 {
+        carro.velocidade += 5
+        return nil
+    } else {
+        return errors.New("o carro já atingiu a velocidade máxima")
+    }
+}
+
+func (carro *Carro) frear() error {
+    if carro.velocidade > 0 {
+        carro.velocidade -= 5
+        return nil
+    } else {
+        return errors.New("o carro já está parado")
+    }
+}
+
+func main(){
+    // Como se fosse o construtor
+    carro := Carro { modelo: "Palio", marca: "Fiat"}
+    fmt.Println("Iniciando o trajeto")
+    opcao := 0
+
+    for opcao != 3 {
+        fmt.Print("O que deseja fazer \n 1 - Acelerar \n 2 - Frear \n 3 - Sair \n Escolha uma opção: ")
+        fmt.Scanf("%d", &opcao)
+        var err error = nil
+        switch opcao {
+        case 1:
+            err = fazerAcelerar(&carro)
+        case 2:
+            err = fazerFrear(&carro)
+        }
+        
+        if err != nil {
+            fmt.Printf("Não foi possível executar a ação \n")
+        } else if opcao != 3 {
+            fmt.Printf("O carro está %.2f Km/h \n", carro.velocidade)
+        }
+    }
+}
+
+func fazerAcelerar(veiculo Acelerador) error {
+    return veiculo.acelerar()
+}
+
+func fazerFrear(veiculo Freador) error {
+    return veiculo.frear()
+}
+```
+
+## 12 - Pacotes Personalizados
+
+Para criarmos um pacote no Go vamos começar executando no terminal o comando o seguinte comando `go env`, com isso será apresentado uma lista com as variáveis, procure pela que se chama `set GOPATH=C:\Users\nome_usuario\go` e acesse está pasta. Dentro dela acesse `src`.
+
+Dentro dela vamos criar uma pasta para nosso pacote, por convenção criar uma pasta com `projeto.com` e dentro dela uma pasta com o nome do autor, dentro desta pasta deve ser o nome do pacote, e dentro dela criar um `arquivo.go` para fornecer o seu pacote.
+
+Após concluído seu projeto vamos executar os pacotes. Para gerar o build dele vamos rodar o comando:
+
+```shell
+go build
+```
+
+Mas isso ainda não é suficiente, precisamos rodar o comando:
+
+```shell
+go install
+```
+
+Esse comando irá compilar nosso package e criar os `arquivos.a` que o Go usa para linkar os projetos internos
+
+
+Com isso já é possível realizar o import do seu arquivo no seu projeto Go:
+
+```go
+package main
+
+import (
+	"seuprojeto.com/seu_nome/pacote"
+)
+```
+
+> Quando eu crio um pacote personalizado eu posso atribuir um alias para ele ficando da seguinte forma `import seu_alias "seuprojeto.com/seu_nome/pacote"` 
+
+## 13 - Concorrência e Assincronismo
 
